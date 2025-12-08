@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Cleanse | Metadata Remover</title>
+    
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f4f6f8;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 600px;
+            width: 100%;
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #008060;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .drag-drop-zone {
+            border: 2px dashed #008060;
+            border-radius: 8px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background-color 0.2s;
+        }
+        .drag-drop-zone:hover {
+            background-color: #e6f7f2;
+        }
+        .status-bar {
+            margin-top: 20px;
+            text-align: center;
+            font-weight: 600;
+            color: #666;
+        }
+        .pro-box {
+            background-color: #fff0d9;
+            border: 1px solid #ffcc80;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin-top: 30px;
+            display: none;
+        }
+        .stripe-button {
+            background-color: #ff9900;
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 15px;
+            transition: background-color 0.2s;
+        }
+        .stripe-button:hover {
+            background-color: #e68a00;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>✨ Digital Cleanse</h1>
+    <p style="text-align: center; color: #666;">Instrumentul simplu pentru ștergerea datelor EXIF și confidențialitate.</p>
+    
+    <div class="drag-drop-zone" id="dragDropZone">
+        <input type="file" id="fileInput" accept="image/*" style="display: none;">
+        <p>Trage și plasează o imagine aici sau **apasă pentru a încărca**.</p>
+    </div>
+    
+    <div class="status-bar" id="statusBar">
+        </div>
+    
+    <div class="pro-box" id="proBox">
+        <h2>Limită Atingasă!</h2>
+        <p>Ai folosit cele 5 procesări gratuite. Treci la versiunea PRO pentru procesare nelimitată și funcții avansate.</p>
+        <a href="https://vps.link.catre.stripe/produs-pro" class="stripe-button" target="_blank">
+            Deblochează PRO pentru $5
+        </a>
+    </div>
+
+    <div id="processingOutput" style="margin-top: 20px;">
+        </div>
+
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
