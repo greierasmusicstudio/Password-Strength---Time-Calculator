@@ -3,62 +3,134 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Digital Cleanse | Metadata Remover</title>
+    <title>Digital Cleanse</title>
     
+    <script src="https://cdn.jsdelivr.net/npm/blueimp-load-image@5.16.0/js/load-image.all.min.js"></script>
+
     <style>
+        :root {
+            --bg-dark: #1a1a2e; /* Fundal mai întunecat */
+            --card-dark: #2a2a3e;
+            --accent-color: #00e699; /* Verde neon */
+            --text-color: #f0f0f0;
+            --shadow-color: rgba(0, 230, 153, 0.3); /* Umbră mai puternică */
+            --pro-bg: #3c2a51; /* Violet închis */
+            --pro-border: #9900e6; /* Violet neon */
+            --border-neon-bright: #00ffcc; /* Verde-albastru neon */
+            --border-neon-dark: #cc00ff; /* Magenta neon */
+        }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #f4f6f8;
-            color: #333;
+            font-family: 'Roboto Mono', monospace, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-color);
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 40px 20px;
+            justify-content: center; /* Centrare pe verticală */
             min-height: 100vh;
+            margin: 0;
+            overflow: hidden; /* Fără scroll, canvas acoperă tot */
+            position: relative;
         }
+
+        /* Canvas pentru efectul Matrix */
+        #matrix-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1; /* În spatele conținutului */
+            opacity: 0.7; /* Transparență subtilă */
+        }
+
         .container {
             max-width: 600px;
-            width: 100%;
-            background-color: #fff;
+            width: 90%; /* Puțin mai îngust pentru mobil */
+            background-color: var(--card-dark);
             padding: 30px;
             border-radius: 12px;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 0 40px var(--shadow-color);
+            position: relative;
+            z-index: 1; /* Peste canvas */
+            
+            /* Efect de neon pe bordura containerului */
+            border: 2px solid;
+            border-image: linear-gradient(45deg, var(--border-neon-bright), var(--border-neon-dark)) 1;
+            animation: neonBorderPulse 3s infinite alternate;
         }
+
+        @keyframes neonBorderPulse {
+            0% { border-image: linear-gradient(45deg, var(--border-neon-bright), var(--border-neon-dark)) 1; }
+            50% { border-image: linear-gradient(45deg, var(--border-neon-dark), var(--border-neon-bright)) 1; }
+            100% { border-image: linear-gradient(45deg, var(--border-neon-bright), var(--border-neon-dark)) 1; }
+        }
+
         h1 {
-            color: #008060;
+            color: var(--accent-color);
             text-align: center;
             margin-bottom: 10px;
+            font-size: 2.2em;
+            text-shadow: 0 0 8px var(--accent-color); /* Efect de neon pe text */
+            animation: textGlow 2s infinite alternate;
+        }
+
+        @keyframes textGlow {
+            0% { text-shadow: 0 0 5px var(--accent-color); }
+            100% { text-shadow: 0 0 15px var(--accent-color); }
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #bbb;
+            margin-bottom: 30px;
+            font-size: 0.9em;
         }
         .drag-drop-zone {
-            border: 2px dashed #008060;
+            border: 3px dashed var(--accent-color);
             border-radius: 8px;
             padding: 40px 20px;
             text-align: center;
             cursor: pointer;
             margin-top: 20px;
-            transition: background-color 0.2s;
+            transition: all 0.3s ease-in-out;
+            background-color: rgba(0, 0, 0, 0.2); /* Fundal semitransparent */
+            box-shadow: 0 0 10px var(--accent-color);
         }
         .drag-drop-zone:hover {
-            background-color: #e6f7f2;
+            background-color: rgba(0, 0, 0, 0.4);
+            box-shadow: 0 0 20px var(--accent-color);
         }
         .status-bar {
             margin-top: 20px;
             text-align: center;
             font-weight: 600;
-            color: #666;
+            color: var(--text-color);
+            padding: 10px;
+            border-radius: 4px;
+            background-color: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--accent-color);
         }
         .pro-box {
-            background-color: #fff0d9;
-            border: 1px solid #ffcc80;
+            background-color: var(--pro-bg);
+            border: 1px solid var(--pro-border);
             padding: 20px;
             border-radius: 8px;
             text-align: center;
             margin-top: 30px;
             display: none;
+            box-shadow: 0 0 15px var(--pro-border);
+            animation: proBoxGlow 2s infinite alternate;
         }
+
+        @keyframes proBoxGlow {
+            0% { box-shadow: 0 0 10px var(--pro-border); }
+            100% { box-shadow: 0 0 20px var(--pro-border); }
+        }
+
         .stripe-button {
-            background-color: #ff9900;
-            color: white;
+            background-color: var(--pro-border);
+            color: var(--text-color);
             padding: 12px 25px;
             border: none;
             border-radius: 6px;
@@ -69,39 +141,115 @@
             display: inline-block;
             margin-top: 15px;
             transition: background-color 0.2s;
+            box-shadow: 0 0 10px var(--pro-border);
         }
         .stripe-button:hover {
-            background-color: #e68a00;
+            background-color: #b300ff;
+            box-shadow: 0 0 15px var(--pro-border);
+        }
+        
+        .download-button { /* Stil pentru butonul de descărcare */
+            background-color: #0080ff; /* Albastru neon */
+            color: var(--text-color);
+            padding: 12px 25px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 15px;
+            transition: background-color 0.2s;
+            box-shadow: 0 0 10px #0080ff;
+        }
+        .download-button:hover {
+            background-color: #0066cc;
+            box-shadow: 0 0 15px #0080ff;
+        }
+
+        /* Stil pentru textul de procesare */
+        #processingOutput p {
+            color: #f0f0f0;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
         }
     </style>
 </head>
 <body>
 
-<div class="container">
+<canvas id="matrix-canvas"></canvas> <div class="container">
     <h1>✨ Digital Cleanse</h1>
-    <p style="text-align: center; color: #666;">Instrumentul simplu pentru ștergerea datelor EXIF și confidențialitate.</p>
+    <p class="subtitle">Instrumentul simplu pentru ștergerea datelor EXIF și confidențialitate.</p>
     
     <div class="drag-drop-zone" id="dragDropZone">
-        <input type="file" id="fileInput" accept="image/*" style="display: none;">
-        <p>Trage și plasează o imagine aici sau **apasă pentru a încărca**.</p>
+        <input type="file" id="fileInput" accept="image/jpeg, image/png" style="display: none;">
+        <p>Trage și plasează o imagine **JPEG sau PNG** aici sau **apasă pentru a încărca**.</p>
     </div>
     
     <div class="status-bar" id="statusBar">
         </div>
     
     <div class="pro-box" id="proBox">
-        <h2>Limită Atingasă!</h2>
+        <h2>Acces Nelimitat (PRO)</h2>
         <p>Ai folosit cele 5 procesări gratuite. Treci la versiunea PRO pentru procesare nelimitată și funcții avansate.</p>
         <a href="https://vps.link.catre.stripe/produs-pro" class="stripe-button" target="_blank">
             Deblochează PRO pentru $5
         </a>
     </div>
 
-    <div id="processingOutput" style="margin-top: 20px;">
+    <div id="processingOutput" style="margin-top: 20px; text-align: center;">
         </div>
 
 </div>
 
 <script src="script.js"></script>
+<script>
+    // Cod JavaScript pentru animația Matrix
+    const canvas = document.getElementById('matrix-canvas');
+    const ctx = canvas.getContext('2d');
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const chars = '0123456789ABCDEFGHJIKLMNOPQRSTUVWXYZ';
+    const fontSize = 16;
+    const columns = canvas.width / fontSize;
+    const drops = [];
+
+    for (let x = 0; x < columns; x++) {
+        drops[x] = 1;
+    }
+
+    function drawMatrix() {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = '#0F0'; /* Culoarea verde Matrix */
+        ctx.font = fontSize + 'px monospace';
+
+        for (let i = 0; i < drops.length; i++) {
+            const text = chars[Math.floor(Math.random() * chars.length)];
+            ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+            if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                drops[i] = 0;
+            }
+            drops[i]++;
+        }
+    }
+
+    setInterval(drawMatrix, 33); // Rulează animația la 30 de cadre/secundă
+
+    window.addEventListener('resize', () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        // Resetează coloanele la redimensionare
+        const newColumns = canvas.width / fontSize;
+        drops.length = 0;
+        for (let x = 0; x < newColumns; x++) {
+            drops[x] = 1;
+        }
+    });
+</script>
 </body>
 </html>

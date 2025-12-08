@@ -6,13 +6,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const proBox = document.getElementById('proBox');
     const processingOutput = document.getElementById('processingOutput');
 
-    // Funcție pentru a citi contorul din localStorage
+    // Funcții pentru Contor
     const getUseCount = () => {
         const count = localStorage.getItem('cleanseUseCount');
         return count ? parseInt(count) : 0;
     };
 
-    // Funcție pentru a actualiza contorul în localStorage
     const incrementUseCount = () => {
         let count = getUseCount();
         if (count < MAX_USES) {
@@ -22,82 +21,110 @@ document.addEventListener('DOMContentLoaded', () => {
         return count;
     };
 
-    // Funcție pentru a actualiza vizual contorul în UI
     const updateStatus = () => {
         const count = getUseCount();
         const remaining = MAX_USES - count;
         
         if (remaining <= 0) {
-            statusBar.innerHTML = `<span style="color: red;">Limită atinsă!</span> Treceți la PRO.`;
-            dragDropZone.style.pointerEvents = 'none'; // Dezactivează zona de drop/click
-            proBox.style.display = 'block'; // Arată caseta de plată
+            statusBar.innerHTML = `<span style="color: var(--pro-border);">Limită atinsă!</span> Treceți la PRO.`;
+            dragDropZone.style.pointerEvents = 'none';
+            proBox.style.display = 'block';
         } else {
-            statusBar.innerHTML = `Utilizări gratuite rămase: <span style="color: #008060;">${remaining} / ${MAX_USES}</span>`;
-            dragDropZone.style.pointerEvents = 'auto'; // Activează zona
-            proBox.style.display = 'none'; // Ascunde caseta de plată
+            statusBar.innerHTML = `Utilizări gratuite rămase: <span style="color: var(--accent-color);">${remaining} / ${MAX_USES}</span>`;
+            dragDropZone.style.pointerEvents = 'auto';
+            proBox.style.display = 'none';
         }
     };
     
     // ----------------------------------------------------
-    // Logica de Procesare & Contorizare (Simulare)
+    // Logica de Procesare & Ștergere EXIF
     // ----------------------------------------------------
 
     const processFile = (file) => {
-        if (file.type && !file.type.startsWith('image/')) {
-            alert('Te rog să încarci doar fișiere imagine.');
+        if (!file.type || !(file.type.startsWith('image/jpeg') || file.type.startsWith('image/png'))) {
+            processingOutput.innerHTML = `<p style="color: red;">Te rog să încarci doar fișiere JPEG sau PNG.</p>`;
             return;
         }
 
-        // 1. Verifică și Incrementează Contorul
         const currentCount = getUseCount();
         if (currentCount >= MAX_USES) {
-            updateStatus(); // Asigură că ProBox este vizibil
+            updateStatus();
             return;
         }
 
-        // 2. Procesare Imagine (Simulare Succes)
-        processingOutput.innerHTML = `<p style="color: #008060;">Procesare imagine: ${file.name}... [Simulare succes]</p>`;
-        
-        // --- Contorizare de Succes ---
-        incrementUseCount();
-        updateStatus();
-        // ------------------------------
+        processingOutput.innerHTML = `<p style="color: #ccc;">Procesare imagine: ${file.name}... Ștergere metadate.</p>`;
+
+        // Folosește librăria loadImage (cu opțiunile 'noExif' și 'canvas')
+        window.loadImage(
+            file,
+            (canvas) => {
+                if (canvas.type === 'error') {
+                    processingOutput.innerHTML = `<p style="color: red;">Eroare la încărcarea imaginii.</p>`;
+                    return;
+                }
+
+                // Generează un Blob (fișier) din canvas-ul curat
+                canvas.toBlob((blob) => {
+                    // Crează un URL pentru a putea descărca fișierul curat
+                    const url = URL.createObjectURL(blob);
+                    const cleanFileName = file.name.replace(/(\.jpe?g|\.png)$/i, '_clean$1');
+
+                    processingOutput.innerHTML = `
+                        <p style="color: var(--accent-color);">
+                            Succes! Metadate șterse.
+                        </p>
+                        <a href="${url}" download="${cleanFileName}" class="download-button">
+                            Descarcă ${cleanFileName}
+                        </a>
+                    `;
+                    
+                    // --- Contorizare de Succes ---
+                    incrementUseCount();
+                    updateStatus();
+                    // ------------------------------
+                }, file.type);
+            },
+            {
+                // Opțiuni pentru a ignora metadatele și a genera o nouă imagine curată
+                orientation: true, 
+                canvas: true,
+                noExif: true, // OBLIGATORIU pentru a ignora EXIF
+                maxWidth: 1600,
+                maxHeight: 1600
+            }
+        );
     };
 
     // ----------------------------------------------------
     // Inițializare și Evenimente UI
     // ----------------------------------------------------
     
-    // Click pe zona de drop deschide dialogul de fișiere
     dragDropZone.addEventListener('click', () => {
         fileInput.click();
     });
 
-    // Când un fișier este selectat
     fileInput.addEventListener('change', (e) => {
         if (e.target.files.length) {
             processFile(e.target.files[0]);
         }
     });
 
-    // Implementarea Drag & Drop
     dragDropZone.addEventListener('dragover', (e) => {
         e.preventDefault();
-        dragDropZone.style.backgroundColor = '#e6f7f2';
+        dragDropZone.style.backgroundColor = '#2a404e';
     });
 
     dragDropZone.addEventListener('dragleave', () => {
-        dragDropZone.style.backgroundColor = '#fff';
+        dragDropZone.style.backgroundColor = 'var(--card-dark)';
     });
 
     dragDropZone.addEventListener('drop', (e) => {
         e.preventDefault();
-        dragDropZone.style.backgroundColor = '#fff';
+        dragDropZone.style.backgroundColor = 'var(--card-dark)';
         if (e.dataTransfer.files.length) {
             processFile(e.dataTransfer.files[0]);
         }
     });
     
-    // Inițializează statusul la încărcarea paginii
     updateStatus();
 });
